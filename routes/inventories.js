@@ -4,7 +4,7 @@ const inventoryController=require('../controllers/inventory-controller');
 
 
   // inventory controller
-router.get('/',inventoryController.index);
+router.get('/',inventoryController.getInventories);
 
 
   

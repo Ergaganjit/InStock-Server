@@ -4,7 +4,7 @@ const warehouseController=require('../controllers/warehouse-controller');
 
 
   // warehouse controller
-router.get('/',warehouseController.index);
+router.get('/',warehouseController.getWarehouses);
 
 
   

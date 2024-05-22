@@ -3,7 +3,7 @@ const knex = require("knex")(require("../knexfile"));
 
 
 
-const index=async (_req, res) => {
+const getWarehouses=async (_req, res) => {
     try {
       const data = await knex("warehouses");
       res.json(data);
@@ -16,5 +16,5 @@ const index=async (_req, res) => {
   };
 
   module.exports={   
-    index
+    getWarehouses
   }
