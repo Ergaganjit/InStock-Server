@@ -28,7 +28,6 @@ const removeWarehouse = async (req, res) => {
           .status(404)
           .json({ message: `warehouse with ID ${req.params.id} not found` });
       }
-  
       // No Content response
       res.sendStatus(204);
     } catch (error) {
