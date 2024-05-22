@@ -1,12 +1,15 @@
 const router = require('express').Router();
-const warehouseController=require('../controllers/warehouse-controller');
+const warehouseController = require('../controllers/warehouse-controller');
 
 
 
-  // warehouse controller
-router.get('/',warehouseController.getWarehouses);
+// warehouse controller
+router.route("/").get(warehouseController.getWarehouses);
+router.route("/:id")
+.delete(warehouseController.removeWarehouse);
 
 
-  
- 
-  module.exports = router;
+
+
+
+module.exports = router;
