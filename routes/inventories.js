@@ -3,10 +3,12 @@ const inventoryController=require('../controllers/inventory-controller');
 
 
 
-  // inventory controller
-router.get('/',inventoryController.getInventories);
+// Inventory router to get data
+router.route("/")
+.get(inventoryController.getInventories);
 
+// Inventory router to delete data
+router.route("/:id")
+.delete(inventoryController.removeInventory);
 
-  
- 
-  module.exports = router;
+module.exports = router;
