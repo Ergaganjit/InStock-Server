@@ -7,12 +7,10 @@ const warehouseController = require('../controllers/warehouse-controller');
 router.route("/")
 .get(warehouseController.getWarehouses);
 
-// warehouse router to delete data
+// warehouse router to delete data; get single warehouse
 router.route("/:id")
-.delete(warehouseController.removeWarehouse);
-
-
-
+.delete(warehouseController.removeWarehouse)
+.get(warehouseController.getSingleWarehouse);
 
 
 module.exports = router;

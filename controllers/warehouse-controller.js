@@ -36,9 +36,22 @@ const removeWarehouse = async (req, res) => {
       });
     }
   };
-  
+
+  //get single warehouse
+  const getSingleWarehouse = async (req, res) => {
+    try {
+        const warehouse = await knex('warehouses').where({ id: req.params.id }).first();
+        if (!warehouse) {
+            return res.status(404).json({ message: `Warehouse ${req.params.id} not found` });
+        }
+        res.status(200).json(warehouse);
+    } catch (error) {
+        res.status(500).json({ message: `Unable to get warehouse: ${error}` });
+    }
+};
 
   module.exports={   
     getWarehouses,
-    removeWarehouse
+    removeWarehouse,
+    getSingleWarehouse
   }
