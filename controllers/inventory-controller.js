@@ -1,6 +1,6 @@
 
 const knex = require("knex")(require("../knexfile"));
-
+const { validateInventoryData } = require("../utils/validate");
 //get inventory
 const getInventories=async (_req, res) => {
     try {
@@ -9,6 +9,7 @@ const getInventories=async (_req, res) => {
     } catch (err) {
       console.log(err);
       res.status(500).json({
+        
         message: "error getting inventory list",
       });
     }
@@ -68,6 +69,50 @@ const getInventories=async (_req, res) => {
     }
   };
 
+  // Update inventory item
+const updateInventory = async (req, res) => {
+  const { id } = req.params;
+  const { warehouse_id, item_name, description, category, status, quantity } = req.body;
+
+  // Validate request body
+  const validation = await validateInventoryData(req.body);
+  if (!validation.valid) {
+    return res.status(400).json({ message: validation.message });
+  }
+
+  try {
+    // Check if inventory item exists
+    const inventory = await knex('inventories').where({ id }).first();
+    if (!inventory) {
+      return res.status(404).json({ message: `Inventory item with ID ${id} not found` });
+    }
+
+    // Update inventory item
+    await knex('inventories')
+      .where({ id })
+      .update({
+        warehouse_id,
+        item_name,
+        description,
+        category,
+        status,
+        quantity
+      });
+
+    // Fetch the updated item
+    const updatedInventory = await knex('inventories').where({ id }).first();
+
+    res.status(200).json(updatedInventory);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: `Unable to update inventory: ${err}`
+    });
+  }
+};
+  
+
+
   //delete inventory
 const removeInventory = async (req, res) => {
   try {
@@ -94,5 +139,6 @@ const removeInventory = async (req, res) => {
     getInventories,
     getInventoryById,
     getInventoriesByWarehouseId,
-    removeInventory
+    removeInventory,
+    updateInventory
   }
