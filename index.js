@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 
 const inventoryRoutes = require("./routes/inventories");
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 5050;
 // Middleware
 app.use(cors());
 app.use(express.json());
+// app.use(bodyParser.json());
 app.use("/api/inventories", inventoryRoutes);
 app.use("/api/warehouses", warehouseRoutes);
 
