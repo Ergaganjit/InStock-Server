@@ -9,7 +9,7 @@ const validateInventoryData = async (data) => {
 
     const warehouseExists = await knex("warehouses").where({ id: warehouse_id }).first();
     if (!warehouseExists) {
-        return { valid: false, message: "warehouse_id does not exist." };
+        return { valid: false, message: "This warehouse_id does not exist." };
     }
 
     if (isNaN(quantity)) {
