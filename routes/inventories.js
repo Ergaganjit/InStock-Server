@@ -14,6 +14,7 @@ router.route("/")
 
 // Inventory router to delete data
 router.route("/:id")
+.put(inventoryController.updateInventory)
 .delete(inventoryController.removeInventory);
 
 
