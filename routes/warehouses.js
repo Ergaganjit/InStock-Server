@@ -10,7 +10,9 @@ router.route("/")
 // warehouse router to delete data; get single warehouse
 router.route("/:id")
 .delete(warehouseController.removeWarehouse)
-.get(warehouseController.getSingleWarehouse);
+.get(warehouseController.getSingleWarehouse)
+.put(warehouseController.editWarehouse);
+
 
 
 module.exports = router;

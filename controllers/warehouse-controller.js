@@ -3,55 +3,72 @@ const knex = require("knex")(require("../knexfile"));
 
 
 //get all warehouse
-const getWarehouses=async (_req, res) => {
-    try {
-      const data = await knex("warehouses");
-      res.json(data);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({
-        message: "error getting warehouse list",
-      });
-    }
-  };
+const getWarehouses = async (_req, res) => {
+  try {
+    const data = await knex("warehouses");
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "error getting warehouse list",
+    });
+  }
+};
 
 
 //delete warehouse
 const removeWarehouse = async (req, res) => {
-    try {
-      const rowsDeleted = await knex("warehouses")
-        .where({ id: req.params.id })
-        .delete();
-  
-      if (rowsDeleted === 0) {
-        return res
-          .status(404)
-          .json({ message: `warehouse with ID ${req.params.id} not found` });
-      }
-      // No Content response
-      res.sendStatus(204);
-    } catch (error) {
-      res.status(500).json({
-        message: `Unable to delete warehouse: ${error}`
-      });
-    }
-  };
+  try {
+    const rowsDeleted = await knex("warehouses")
+      .where({ id: req.params.id })
+      .delete();
 
-  //get single warehouse
-  const getSingleWarehouse = async (req, res) => {
-    try {
-        const warehouse = await knex('warehouses').where({ id: req.params.id }).first();
-        if (!warehouse) {
-            return res.status(404).json({ message: `Warehouse ${req.params.id} not found` });
-        }
-        res.status(200).json(warehouse);
-    } catch (error) {
-        res.status(500).json({ message: `Unable to get warehouse: ${error}` });
+    if (rowsDeleted === 0) {
+      return res
+        .status(404)
+        .json({ message: `warehouse with ID ${req.params.id} not found` });
     }
+    // No Content response
+    res.sendStatus(204);
+  } catch (error) {
+    res.status(500).json({
+      message: `Unable to delete warehouse: ${error}`
+    });
+  }
 };
 
-  module.exports={   
-    getWarehouses,
-    removeWarehouse,
-    getSingleWarehouse
+//get single warehouse
+const getSingleWarehouse = async (req, res) => {
+  try {
+    const warehouse = await knex('warehouses').where({ id: req.params.id }).first();
+    if (!warehouse) {
+      return res.status(404).json({ message: `Warehouse ${req.params.id} not found` });
+    }
+    res.status(200).json(warehouse);
+  } catch (error) {
+    res.status(500).json({ message: `Unable to get warehouse: ${error}` });
   }
+};
+
+
+const editWarehouse = async (req, res) => {
+  try {
+    req.body.created_at = new Date(req.body.created_at);
+    req.body.updated_at = new Date(req.body.updated_at);
+    const updatedWarehouse = await knex('warehouses').where({ id: req.params.id }).update(req.body);
+    if (!updatedWarehouse) {
+      return res.status(404).json({ message: `Warehouse ${req.params.id} not found` });
+    }
+    res.status(200).json(updatedWarehouse);
+  } catch (error) {
+    res.status(500).json({ message: `Unable to update warehouse: ${error}` });
+  }
+};
+
+
+module.exports = {
+  getWarehouses,
+  removeWarehouse,
+  getSingleWarehouse,
+  editWarehouse
+}
