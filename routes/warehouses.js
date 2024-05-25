@@ -48,7 +48,8 @@ router
 router
   .route("/:id")
   .delete(warehouseController.removeWarehouse)
-  .get(warehouseController.getSingleWarehouse);
+  .get(warehouseController.getSingleWarehouse)
+  .put(warehouseController.editWarehouse);
 
 // warehouse router to get inventories for specific warehouse
 router
