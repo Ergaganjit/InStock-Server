@@ -69,6 +69,29 @@ const getInventories=async (_req, res) => {
     }
   };
 
+  const addToInventory = async (req, res) => {
+    try {
+        const allInventoryItems = await knex("inventories");
+        const latestInventoryItemId = allInventoryItems[allInventoryItems.length - 1].id;
+        const postedItem = req.body;
+        
+        const newInventoryItem = {
+            "id": latestInventoryItemId + 1,
+            "warehouse_id": postedItem.warehouse_id,
+            "item_name": postedItem.item_name,
+            "description": postedItem.description,
+            "category": postedItem.category,
+            "status": postedItem.status,
+            "quantity": postedItem.quantity
+          }
+
+        const inventories = await knex("inventories").insert(newInventoryItem);
+        res.status(200).json(newInventoryItem);
+    } catch (error) {
+        console.error("Failed to add new item to inventory:", error);
+    }
+  }
+
   // Update inventory item
 const updateInventory = async (req, res) => {
   const { id } = req.params;
@@ -139,6 +162,7 @@ const removeInventory = async (req, res) => {
     getInventories,
     getInventoryById,
     getInventoriesByWarehouseId,
+    addToInventory,
     removeInventory,
     updateInventory
   }

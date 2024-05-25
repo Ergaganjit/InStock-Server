@@ -10,7 +10,8 @@ const inventoryController=require('../controllers/inventory-controller');
 
 // Inventory router to get data
 router.route("/")
-.get(inventoryController.getInventories);
+.get(inventoryController.getInventories)
+.post(inventoryController.addToInventory);
 
 // Inventory router to delete data
 router.route("/:id")
