@@ -1,6 +1,6 @@
 
 const knex = require("knex")(require("../knexfile"));
-const { validateInventoryData } = require("../utils/validate");
+const { validateInventoryData, validateNewInventoryData } = require("../utils/validate");
 
 //get inventory
 const  getInventories = async (_req, res) => {
@@ -79,6 +79,43 @@ const  getInventories = async (_req, res) => {
     }
   };
 
+  const addToInventory = async (req, res) => {
+      try {
+          const {
+              warehouse_id,
+              item_name,
+              description,
+              category,
+              status,
+              quantity,
+          } = req.body;
+
+          const newInventoryValidation = await validateNewInventoryData(req.body);
+          const { isValid, errorMessage } = newInventoryValidation;
+
+          if (isValid) {
+              const newInventoryItem = {
+                  warehouse_id,
+                  item_name,
+                  description,
+                  category,
+                  status,
+                  quantity
+              };
+
+              const newInventory = await knex('inventories').insert(newInventoryItem);
+              const latestInventoryItem = await knex('inventories').orderBy('id', 'desc').first();
+              console.log("latestInventory", latestInventoryItem);
+              res.status(201).json(latestInventoryItem);
+
+          } else {
+              res.status(400).json(`Error: ${errorMessage}`);
+          }
+      } catch (error) {
+          console.error('Failed to add new item to inventory:', error);
+      }
+  };
+
   // Update inventory item
 const updateInventory = async (req, res) => {
   const { id } = req.params;
@@ -149,6 +186,7 @@ const removeInventory = async (req, res) => {
     getInventories,
     getInventoryById,
     getInventoriesByWarehouseId,
+    addToInventory,
     removeInventory,
     updateInventory
   }
