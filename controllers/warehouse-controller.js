@@ -86,9 +86,24 @@ const getSingleWarehouse = async (req, res) => {
   }
 };
 
+const editWarehouse = async (req, res) => {
+  try {
+    req.body.created_at = new Date(req.body.created_at);
+    req.body.updated_at = new Date(req.body.updated_at);
+    const updatedWarehouse = await knex('warehouses').where({ id: req.params.id }).update(req.body);
+    if (!updatedWarehouse) {
+      return res.status(404).json({ message: `Warehouse ${req.params.id} not found` });
+    }
+    res.status(200).json(updatedWarehouse);
+  } catch (error) {
+    res.status(500).json({ message: `Unable to update warehouse: ${error}` });
+  }
+};
+
 module.exports = {
   getWarehouses,
   removeWarehouse,
   getSingleWarehouse,
-  createWarehouse
+  createWarehouse,
+  editWarehouse
 };
