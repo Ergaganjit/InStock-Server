@@ -1,6 +1,6 @@
 
 const knex = require("knex")(require("../knexfile"));
-const { validateInventoryData, validateNewInventoryData } = require("../utils/validate");
+const { validateUpdateInventory } = require('../utils/validate');
 
 //get inventory
 const  getInventories = async (_req, res) => {
@@ -116,25 +116,21 @@ const  getInventories = async (_req, res) => {
       }
   };
 
-  // Update inventory item
+//Update 
 const updateInventory = async (req, res) => {
   const { id } = req.params;
-  const { warehouse_id, item_name, description, category, status, quantity } = req.body;
+  const { warehouse_name, item_name, description, category, status, quantity } = req.body;
 
-  // Validate request body
-  const validation = await validateInventoryData(req.body);
-  if (!validation.valid) {
-    return res.status(400).json({ message: validation.message });
+  // Validate request
+  const validation = await validateUpdateInventory(req, res);
+  if (validation.status !== 200) {
+    return res.status(validation.status).json({ message: validation.message });
   }
 
-  try {
-    // Check if inventory item exists
-    const inventory = await knex('inventories').where({ id }).first();
-    if (!inventory) {
-      return res.status(404).json({ message: `Inventory item with ID ${id} not found` });
-    }
+  const warehouse_id = validation.warehouseId;
 
-    // Update inventory item
+  try {
+    // Update the inventory item in the database
     await knex('inventories')
       .where({ id })
       .update({
@@ -143,20 +139,34 @@ const updateInventory = async (req, res) => {
         description,
         category,
         status,
-        quantity
+        quantity: status === 'Out of Stock' ? 0 : quantity // Ensure quantity is 0 if status is 'Out of Stock'
       });
 
-    // Fetch the updated item
-    const updatedInventory = await knex('inventories').where({ id }).first();
+    // Fetch the updated inventory item
+    const updatedInventory = await knex('inventories')
+      .join('warehouses', 'inventories.warehouse_id', '=', 'warehouses.id')
+      .select(
+        'inventories.id',
+        'warehouses.warehouse_name',
+        'inventories.item_name',
+        'inventories.description',
+        'inventories.category',
+        'inventories.status',
+        'inventories.quantity'
+      )
+      .where('inventories.id', id)
+      .first();
 
     res.status(200).json(updatedInventory);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: `Unable to update inventory: ${err}`
-    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while updating the inventory item' });
   }
 };
+
+  
+ 
+  
   
 
 
