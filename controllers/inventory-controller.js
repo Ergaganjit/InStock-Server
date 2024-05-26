@@ -1,6 +1,6 @@
 
 const knex = require("knex")(require("../knexfile"));
-const { validateInventoryData } = require("../utils/validate");
+const { validateInventoryData, validateNewInventoryData } = require("../utils/validate");
 //get inventory
 const getInventories=async (_req, res) => {
     try {
@@ -70,27 +70,41 @@ const getInventories=async (_req, res) => {
   };
 
   const addToInventory = async (req, res) => {
-    try {
-        const allInventoryItems = await knex("inventories");
-        const latestInventoryItemId = allInventoryItems[allInventoryItems.length - 1].id;
-        const postedItem = req.body;
-        
-        const newInventoryItem = {
-            "id": latestInventoryItemId + 1,
-            "warehouse_id": postedItem.warehouse_id,
-            "item_name": postedItem.item_name,
-            "description": postedItem.description,
-            "category": postedItem.category,
-            "status": postedItem.status,
-            "quantity": postedItem.quantity
-          }
+      try {
+          const {
+              warehouse_id,
+              item_name,
+              description,
+              category,
+              status,
+              quantity,
+          } = req.body;
 
-        const inventories = await knex("inventories").insert(newInventoryItem);
-        res.status(200).json(newInventoryItem);
-    } catch (error) {
-        console.error("Failed to add new item to inventory:", error);
-    }
-  }
+          const newInventoryValidation = await validateNewInventoryData(req.body);
+          const { isValid, errorMessage } = newInventoryValidation;
+
+          if (isValid) {
+              const newInventoryItem = {
+                  warehouse_id,
+                  item_name,
+                  description,
+                  category,
+                  status,
+                  quantity
+              };
+
+              const newInventory = await knex('inventories').insert(newInventoryItem);
+              const latestInventoryItem = await knex('inventories').orderBy('id', 'desc').first();
+              console.log("latestInventory", latestInventoryItem);
+              res.status(201).json(latestInventoryItem);
+
+          } else {
+              res.status(400).json(`Error: ${errorMessage}`);
+          }
+      } catch (error) {
+          console.error('Failed to add new item to inventory:', error);
+      }
+  };
 
   // Update inventory item
 const updateInventory = async (req, res) => {
