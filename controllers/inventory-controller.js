@@ -1,4 +1,5 @@
 
+
 const knex = require("knex")(require("../knexfile"));
 const { validateUpdateInventory } = require('../utils/validate');
 
@@ -118,50 +119,32 @@ const  getInventories = async (_req, res) => {
 
 //Update 
 const updateInventory = async (req, res) => {
-  const { id } = req.params;
-  const { warehouse_name, item_name, description, category, status, quantity } = req.body;
+  const validationResult = await validateUpdateInventory(req, res);
 
-  // Validate request
-  const validation = await validateUpdateInventory(req, res);
-  if (validation.status !== 200) {
-    return res.status(validation.status).json({ message: validation.message });
+  if (validationResult.status !== 200) {
+    return res.status(validationResult.status).json({ message: validationResult.message });
   }
 
-  const warehouse_id = validation.warehouseId;
+  const { warehouseId } = validationResult;
+  const { item_name, description, category, status, quantity } = req.body;
 
-  try {
-    // Update the inventory item in the database
-    await knex('inventories')
-      .where({ id })
-      .update({
-        warehouse_id,
-        item_name,
-        description,
-        category,
-        status,
-        quantity: status === 'Out of Stock' ? 0 : quantity // Ensure quantity is 0 if status is 'Out of Stock'
-      });
-
-    // Fetch the updated inventory item
-    const updatedInventory = await knex('inventories')
-      .join('warehouses', 'inventories.warehouse_id', '=', 'warehouses.id')
-      .select(
-        'inventories.id',
-        'warehouses.warehouse_name',
-        'inventories.item_name',
-        'inventories.description',
-        'inventories.category',
-        'inventories.status',
-        'inventories.quantity'
-      )
-      .where('inventories.id', id)
-      .first();
-
-    res.status(200).json(updatedInventory);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while updating the inventory item' });
-  }
+  knex("inventories")
+    .where({ id: req.params.id })
+    .update({
+      warehouse_id: warehouseId,
+      item_name,
+      description,
+      category,
+      status,
+      quantity: status === "Out of Stock" ? 0 : quantity,
+    })
+    .then(() => {
+      res.status(200).json({ message: "Inventory item updated successfully" });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: "An error occurred" });
+    });
 };
 
   
