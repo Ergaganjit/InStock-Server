@@ -1,16 +1,27 @@
 
+
 const knex = require("knex")(require("../knexfile"));
-const { validateInventoryData } = require("../utils/validate");
+const { validateUpdateInventory } = require('../utils/validate');
+
 //get inventory
-const getInventories=async (_req, res) => {
+const  getInventories = async (_req, res) => {
     try {
-      const data = await knex("inventories");
-      res.json(data);
+      const data = await knex("inventories")
+        .join("warehouses", "inventories.warehouse_id", "=", "warehouses.id")
+        .select(
+          "inventories.id",
+          "warehouses.warehouse_name",
+          "inventories.item_name",
+          "inventories.description",
+          "inventories.category",
+          "inventories.status",
+          "inventories.quantity"
+        );
+      res.status(200).json(data);
     } catch (err) {
       console.log(err);
       res.status(500).json({
-        
-        message: "error getting inventory list",
+        message: "Error getting inventory list",
       });
     }
   };
@@ -69,47 +80,76 @@ const getInventories=async (_req, res) => {
     }
   };
 
-  // Update inventory item
+  const addToInventory = async (req, res) => {
+      try {
+          const {
+              warehouse_id,
+              item_name,
+              description,
+              category,
+              status,
+              quantity,
+          } = req.body;
+
+          const newInventoryValidation = await validateNewInventoryData(req.body);
+          const { isValid, errorMessage } = newInventoryValidation;
+
+          if (isValid) {
+              const newInventoryItem = {
+                  warehouse_id,
+                  item_name,
+                  description,
+                  category,
+                  status,
+                  quantity
+              };
+
+              const newInventory = await knex('inventories').insert(newInventoryItem);
+              const latestInventoryItem = await knex('inventories').orderBy('id', 'desc').first();
+              console.log("latestInventory", latestInventoryItem);
+              res.status(201).json(latestInventoryItem);
+
+          } else {
+              res.status(400).json(`Error: ${errorMessage}`);
+          }
+      } catch (error) {
+          console.error('Failed to add new item to inventory:', error);
+      }
+  };
+
+//Update 
 const updateInventory = async (req, res) => {
-  const { id } = req.params;
-  const { warehouse_id, item_name, description, category, status, quantity } = req.body;
+  const validationResult = await validateUpdateInventory(req, res);
 
-  // Validate request body
-  const validation = await validateInventoryData(req.body);
-  if (!validation.valid) {
-    return res.status(400).json({ message: validation.message });
+  if (validationResult.status !== 200) {
+    return res.status(validationResult.status).json({ message: validationResult.message });
   }
 
-  try {
-    // Check if inventory item exists
-    const inventory = await knex('inventories').where({ id }).first();
-    if (!inventory) {
-      return res.status(404).json({ message: `Inventory item with ID ${id} not found` });
-    }
+  const { warehouseId } = validationResult;
+  const { item_name, description, category, status, quantity } = req.body;
 
-    // Update inventory item
-    await knex('inventories')
-      .where({ id })
-      .update({
-        warehouse_id,
-        item_name,
-        description,
-        category,
-        status,
-        quantity
-      });
-
-    // Fetch the updated item
-    const updatedInventory = await knex('inventories').where({ id }).first();
-
-    res.status(200).json(updatedInventory);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: `Unable to update inventory: ${err}`
+  knex("inventories")
+    .where({ id: req.params.id })
+    .update({
+      warehouse_id: warehouseId,
+      item_name,
+      description,
+      category,
+      status,
+      quantity: status === "Out of Stock" ? 0 : quantity,
+    })
+    .then(() => {
+      res.status(200).json({ message: "Inventory item updated successfully" });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: "An error occurred" });
     });
-  }
 };
+
+  
+ 
+  
   
 
 
@@ -139,6 +179,7 @@ const removeInventory = async (req, res) => {
     getInventories,
     getInventoryById,
     getInventoriesByWarehouseId,
+    addToInventory,
     removeInventory,
     updateInventory
   }
